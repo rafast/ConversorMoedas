@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ConversorMoedas
 {
+    //Classe para deserializar o JSON recebido da API
     public class ConversaoPOCO
     {
         [JsonPropertyName("info")]

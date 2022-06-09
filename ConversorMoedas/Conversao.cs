@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace ConversorMoedas
 {
+    //Classe que representa uma Conversão e sua validação
     public class Conversao
     {
         public string MoedaOrigem { get; set; }
@@ -51,7 +52,7 @@ namespace ConversorMoedas
                 Console.WriteLine($"Erro: {erro.Value}");
             }
         }
-
+        //Inicia a releitura dos dados inválidos e faz uma nova validação
         public void IniciaValidacao()
         {
             ValidarDados();
@@ -72,21 +73,27 @@ namespace ConversorMoedas
                 ValidarDados();
             }
         }
-
+        //Verifica se o valor é maior que zero
         private bool ValidaValor()
         {
             return decimal.TryParse(Valor, out var value) & value >0;
         }
-
+        //Verifica se uma moeda é composta somente por letras e tamanho igual a 3
         private bool IsFormatoMoedaValido(string moeda)
         {
             string padrao = "^[A-Z]{3}$";
             return Regex.IsMatch(moeda, padrao);
         }
-
+        //Retorna a query para realizar a conversão através da API
         public string GetQuery()
         {
             return $"?from={MoedaOrigem}&to={MoedaDestino}&amount={Valor}";
+        }
+        //Imprime o resultado da conversão
+        public void ImprimeResultado(ConversaoPOCO resultado)
+        {
+            Console.WriteLine($"{MoedaOrigem} {Valor} => {MoedaDestino} {resultado.Result:C2}");
+            Console.WriteLine($"Taxa: {resultado.Info.Rate}");
         }
     }
 }

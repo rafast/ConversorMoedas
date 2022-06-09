@@ -1,31 +1,19 @@
 ﻿using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ConversorMoedas
 {
     class Program
     {
-        private static readonly HttpClient httpCliente = new HttpClient();
-
         static async Task Main(string[] args)
         {
             Console.WriteLine("Bem-vindo ao conversor de moedas!");
             ExchangeRateAPICliente.Config();
             await Run();
-
-            //HttpResponseMessage response = await httpCliente.GetAsync("https://api.exchangerate.host/convert?from=USD&to=BRL&amount=100.0");
-
-            //var json = await ExchangeRateAPICliente.GetExchangeRates("?from=USD&to=BRL&amount=100.0");
-            //var jsonString = JsonSerializer.Deserialize<ConversaoPOCO>(json);
-            //Console.WriteLine(jsonString.Info.Rate);
-            //Console.WriteLine(jsonString.Result);
         }
 
+        //Implementação do loop de leitura, conversão e resposta da apliação
         private static async Task Run()
         {
             bool fim = false;
@@ -34,26 +22,41 @@ namespace ConversorMoedas
             {
                 Console.Write("Moeda origem: ");
                 string moedaOrigem = Console.ReadLine();
-                Console.Write("Moeda destino: ");
-                string moedaDestino = Console.ReadLine();
-                Console.Write("Valor: ");
-                string valor = Console.ReadLine();
-
                 if (string.IsNullOrEmpty(moedaOrigem))
                 {
                     fim = true;
                     return;
                 }
+                Console.Write("Moeda destino: ");
+                string moedaDestino = Console.ReadLine();
+                Console.Write("Valor: ");
+                string valor = Console.ReadLine();
+                Console.WriteLine();
 
                 Conversao novaConversao = new Conversao(moedaOrigem, moedaDestino, valor);
+                string response = "";
+                try
+                {
+                    response = await ExchangeRateAPICliente.GetExchangeRatesAsync(novaConversao.GetQuery());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ocorreu um erro durante a conversão: {ex.Message}");
+                }
 
-                var resultado = await ExchangeRateAPICliente.GetExchangeRates(novaConversao.GetQuery());
-                var json = JsonSerializer.Deserialize<ConversaoPOCO>(resultado);
-                Console.WriteLine();
-                Console.WriteLine($"{novaConversao.MoedaOrigem} {novaConversao.Valor} => {novaConversao.MoedaDestino} {json.Result:C2}");
-                Console.WriteLine($"Taxa: {json.Info.Rate}");
+                try
+                {
+                    var resultadoConversao = JsonSerializer.Deserialize<ConversaoPOCO>(response);
+                    novaConversao.ImprimeResultado(resultadoConversao);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Erro: moeda origem e/ou moeda destino inválida.");
+                }
+
+                Console.WriteLine("Pressione qualquer tecla para iniciar uma nova conversão. Para sair, deixe a moeda origem em branco.");
                 Console.ReadKey();
-
+                Console.Clear();
 
             }
         }
